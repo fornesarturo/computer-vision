@@ -2,9 +2,15 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+*.pdf
+__pycache__/
+.vscode/
+*.vscode/
+*.zip
 # C extensions
 *.so
+.DS_STORE
+*.DS_STORE
 
 # Distribution / packaging
 .Python
