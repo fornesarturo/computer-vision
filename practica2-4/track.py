@@ -1,27 +1,69 @@
 import numpy as np
 import cv2
-from matplotlib import pyplot as plt
 
-img1 = cv2.imread('box.png',0)          # queryImage
-img2 = cv2.imread('box_in_scene.png',0) # trainImage
+def getAverage (matches, train_kp, keep_n = 5):
+    # Keep n of the top matches
+    topMatches = matches[:keep_n]
+    avg_x = 0
+    avg_y = 0
+    points = []
+    for match in topMatches:
+        x = train_kp[match.trainIdx].pt[0]
+        y = train_kp[match.trainIdx].pt[1]
+        avg_x += x
+        avg_y += y
+        points.append([x, y])
+    avg_x //= keep_n
+    avg_y //= keep_n
 
-# Initiate SIFT detector
-orb = cv2.ORB()
+    avg = (int(avg_x), int(avg_y))
+    return avg, points, topMatches
 
-# find the keypoints and descriptors with SIFT
-kp1, des1 = orb.detectAndCompute(img1,None)
-kp2, des2 = orb.detectAndCompute(img2,None)
 
-# create BFMatcher object
-bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
+def main(debug=False, image="drive_logo.jpg", polyline=False, circle_color=(0, 255, 0), polyline_color=(0, 255, 255)):
+    if debug:
+        from matplotlib import pyplot as plt
+    cap = cv2.VideoCapture(0)
+    modelImg = cv2.imread(image)
 
-# Match descriptors.
-matches = bf.match(des1,des2)
+    # Initiate ORB (Oriented FAST and Rotated BRIEF) 
+    # *free version of SIFT developed by the OpenCV guys
+    orb = cv2.ORB_create()
 
-# Sort them in the order of their distance.
-matches = sorted(matches, key = lambda x:x.distance)
+    # find keypoints and descriptors with ORB
+    kp1, des1 = orb.detectAndCompute(modelImg, None)
+    if debug:
+        drawn1 = cv2.drawKeypoints(modelImg, kp1, None, color=(0, 255, 0), flags=0)
+        plt.imshow(drawn1), plt.show()
 
-# Draw first 10 matches.
-img3 = cv2.drawMatches(img1,kp1,img2,kp2,matches[:10], flags=2)
+    bf = cv2.BFMatcher_create(cv2.NORM_HAMMING, crossCheck=True)
 
-plt.imshow(img3),plt.show()
+    while (cap.isOpened()):
+        ret, frame = cap.read()
+
+        resKp, des2 = orb.detectAndCompute(frame, None)
+
+        matches = bf.match(des1, des2)
+
+        # Sort them in the order of their distance.
+        matches = sorted(matches, key=lambda x: x.distance)
+
+        avg, points, topMatches = getAverage(matches, train_kp=resKp, keep_n=5)
+
+        img3 = cv2.drawMatches(modelImg, kp1, frame, resKp, topMatches, None, flags=2)
+
+        frame = cv2.circle(frame, center=avg, radius=100, color=circle_color, thickness=10)
+
+        if polyline:
+            pts = np.array(points, np.int32)
+            pts = pts.reshape((-1, 1, 2))
+            cv2.polylines(frame, [pts], True, polyline_color, thickness=10)
+
+        cv2.imshow('Detecting...', frame)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    cap.release()
+
+if __name__ == '__main__':
+    main(image="drive_logo.jpg", polyline=True, debug=True)
