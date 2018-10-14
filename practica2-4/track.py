@@ -33,7 +33,7 @@ def main(debug=False, image="drive_logo.jpg", polyline=False, circle_color=(0, 2
     # find keypoints and descriptors with ORB
     kp1, des1 = orb.detectAndCompute(modelImg, None)
     if debug:
-        drawn1 = cv2.drawKeypoints(modelImg, kp1, None, color=(0, 255, 0), flags=0)
+        drawn1 = cv2.drawKeypoints(modelImg, kp1, None, color=(0, 255, 0), flags=4)
         plt.imshow(drawn1), plt.show()
 
     bf = cv2.BFMatcher_create(cv2.NORM_HAMMING, crossCheck=True)
@@ -50,7 +50,9 @@ def main(debug=False, image="drive_logo.jpg", polyline=False, circle_color=(0, 2
 
         avg, points, topMatches = getAverage(matches, train_kp=resKp, keep_n=5)
 
-        img3 = cv2.drawMatches(modelImg, kp1, frame, resKp, topMatches, None, flags=2)
+        if debug:
+            draw_matches = cv2.drawMatches(modelImg, kp1, frame, resKp, topMatches, None, flags=2)
+            plt.imshow(draw_matches), plt.show()
 
         frame = cv2.circle(frame, center=avg, radius=100, color=circle_color, thickness=10)
 
@@ -66,4 +68,4 @@ def main(debug=False, image="drive_logo.jpg", polyline=False, circle_color=(0, 2
     cap.release()
 
 if __name__ == '__main__':
-    main(image="drive_logo.jpg", polyline=True, debug=True)
+    main(image="drive_logo.jpg", polyline=False, debug=False)
