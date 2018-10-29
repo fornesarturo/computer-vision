@@ -16,7 +16,7 @@ def main(debug=False):
                 yield (x, y, img[y:y + window_y, x:x + window_x])
     
     def pyramid(image, scale=1.5, minSize=(30, 30)):
-        # yield image # don't start with original image as it takes too much time
+        yield image
         while True:
             w = int(image.shape[1] / scale)
             image = imutils.resize(image, width=w)
@@ -26,7 +26,7 @@ def main(debug=False):
 
     orb = cv2.ORB_create()
     modelImg = cv2.imread("drive_logo.jpg")
-    modelImg = imutils.resize(modelImg, width=modelImg.shape[1]//2)
+    modelImg = imutils.resize(modelImg, width=modelImg.shape[1]//4)
 
     (winW, winH) = (128, 128)
 
