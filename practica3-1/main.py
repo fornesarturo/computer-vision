@@ -26,6 +26,7 @@ def main(debug=False):
 
     orb = cv2.ORB_create()
     modelImg = cv2.imread("drive_logo.jpg")
+    modelImg = imutils.resize(modelImg, width=modelImg.shape[1]//2)
 
     (winW, winH) = (128, 128)
 
@@ -33,7 +34,7 @@ def main(debug=False):
 
     for img in pyramid(modelImg, scale=2.0):
         # Create new entry for this level of the pyramid
-        pyramid_width = img.shape[0]
+        pyramid_width = img.shape[1]
         data[pyramid_width] = {}
 
         for (x, y, window) in get_windows(img, 30, (winW, winH)):
