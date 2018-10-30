@@ -41,6 +41,9 @@ def main(debug=False):
             
             if window.shape[0] != winH or window.shape[1] != winW:
                 continue
+            
+            image_name = str(pyramid_width) + "_" + str(x) + "_" + str(y) + ".png"
+            cv2.imwrite(image_name, window)
     
             window_kp, window_desc = orb.detectAndCompute(window, None)
             if window_desc is not None:
