@@ -1,5 +1,92 @@
 import numpy as np
 import cv2
+import random
+import time
+
+
+def bounce_ball_TOP_BOTTOM(velocityY):
+    return -1 * velocityY
+
+def bounce_ball_LEFT_RIGHT(velocityX):
+    return -1 * velocityX
+
+def ball(frame, binarized, center, vel, global_Measurements, only_one_square, rands, debug=False):
+
+    global_Width = global_Measurements[0]
+    global_Height = global_Measurements[1]
+
+    ball_diameter = 20
+    ball_radius = ball_diameter/2
+    ball_color = (255, 125, 0)
+    thickness = -1
+
+    velX = vel[0]
+    velY = vel[1]
+
+    score = 0
+
+    
+
+    if(debug):
+        binarized = cv2.resize(binarized, (global_Width, global_Height))
+        cv2.circle(binarized, tuple(center), ball_diameter, ball_color, thickness)
+    else:
+        frame = cv2.resize(frame, (global_Width, global_Height))
+        cv2.circle(frame, tuple(center), ball_diameter, ball_color, thickness)
+    
+
+    if (center[0] - 10) <= 0:
+        velX = bounce_ball_TOP_BOTTOM(velX)
+    elif (center[0] + 10) >= global_Width:
+        velX = bounce_ball_TOP_BOTTOM(velX)
+    if (center[1] - 10) <= 0:
+        velY = bounce_ball_LEFT_RIGHT(velY)
+    elif (center[1] + 10) >= global_Height:
+        velY = bounce_ball_LEFT_RIGHT(velY)    
+
+    if (center[1] < global_Height):
+        print("Binarized at ", (center[0]-10), " ", center[1], " is: ", binarized[center[1]][center[0]-10])
+
+    if binarized[center[1]][center[0]-10] == 255:
+        velX = bounce_ball_TOP_BOTTOM(velX)
+    if binarized[center[1]][center[0]+10] == 255:
+        velX = bounce_ball_TOP_BOTTOM(velX)
+    if binarized[center[1]+10][center[0]] == 255:
+        velY = bounce_ball_LEFT_RIGHT(velY)
+    if binarized[center[1]-10][center[0]] == 255:
+        velY = bounce_ball_LEFT_RIGHT(velY)
+
+    if only_one_square:
+        randX = random.randint(1,global_Width-50)
+        randY = random.randint(1,global_Height-50)        
+        only_one_square = False
+    else:
+        randX = rands[0]
+        randY = rands[1]
+
+    cv2.rectangle(frame, (randX, randY), (randX+35, randY+35), (0,255,0), -1)
+
+    ball_x1 = center[0]-ball_radius
+    ball_x2 = center[0]+ball_radius
+    ball_y1 = center[1]+ball_radius
+    ball_y2 = center[1]-ball_radius
+
+    if (ball_x1 <= (randX+60)) and (ball_x2 >= randX) and (ball_y1 <= (randY+60)) and (ball_y2 >= randY):
+        score += 10
+        print("New Score: ", score)
+        only_one_square = True   
+
+    center[0] += velX
+    center[1] += velY
+
+    rands = [randX, randY]
+
+    vel = [velX, velY]
+
+    if(debug):
+        frame = binarized
+
+    return frame, center, vel, only_one_square, rands
 
 def getROI(frame, kernel, detector, debug=False):
     green_min = 70
@@ -71,6 +158,14 @@ def getBlobDetector():
     return detector
 
 def main(cap, debug=False):
+    global_Width = 1280
+    global_Height = 720
+    global_Measurements = [global_Width, global_Height]
+    only_one_square = True
+    vel = [30, 30]
+    rands = [random.randint(1, global_Width-50), random.randint(1, global_Height-50)]
+
+    center = [global_Width//2, global_Height//2]
     detector = getBlobDetector()
 
     kernel_blobs = np.ones((9, 9), np.uint8)
@@ -85,7 +180,9 @@ def main(cap, debug=False):
         roi, debug_im = getROI(frame, kernel_blobs, detector)
         binarized = binarize(roi, kernel_binarization)
 
-        cv2.imshow('ROI', binarized)
+        frame, center, vel, only_one_square, rands = ball(frame, binarized, center, vel, global_Measurements, only_one_square, rands, True)
+
+        cv2.imshow('ROI', frame)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
