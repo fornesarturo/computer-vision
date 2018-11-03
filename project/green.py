@@ -65,6 +65,9 @@ def main(cap, debug=False):
     while(cap.isOpened()):
         ret, frame = cap.read()
 
+        if not ret:
+            break
+
         roi, debug_im = getROI(frame, kernel, detector)
 
         cv2.imshow('ROI', roi)
