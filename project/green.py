@@ -40,6 +40,18 @@ def getROI(frame, kernel, detector, debug=False):
         return roi, im_with_keypoints
     return roi, False
 
+def binarize(frame, kernel):
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    ret_th, binarized = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+
+    masked = binarized * gray
+    negation = cv2.bitwise_not(binarized)
+    dilation = cv2.dilate(negation, kernel, iterations=2)
+    closing = cv2.morphologyEx(dilation, cv2.MORPH_CLOSE, kernel)
+
+    return closing
+
 def getBlobDetector():
     # Setup SimpleBlobDetector parameters.
     params = cv2.SimpleBlobDetector_Params()
@@ -60,7 +72,9 @@ def getBlobDetector():
 
 def main(cap, debug=False):
     detector = getBlobDetector()
-    kernel = np.ones((9, 9), np.uint8)
+
+    kernel_blobs = np.ones((9, 9), np.uint8)
+    kernel_binarization = np.ones((5, 5), np.uint8)
 
     while(cap.isOpened()):
         ret, frame = cap.read()
@@ -68,9 +82,10 @@ def main(cap, debug=False):
         if not ret:
             break
 
-        roi, debug_im = getROI(frame, kernel, detector)
+        roi, debug_im = getROI(frame, kernel_blobs, detector)
+        binarized = binarize(roi, kernel_binarization)
 
-        cv2.imshow('ROI', roi)
+        cv2.imshow('ROI', binarized)
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
