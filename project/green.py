@@ -1,32 +1,9 @@
 import numpy as np
 import cv2
 
-cap = cv2.VideoCapture("puntos.mp4")
-
-green_min = 70
-green_max = 90
-
-kernel = np.ones((9, 9), np.uint8)
-
-# Setup SimpleBlobDetector parameters.
-params = cv2.SimpleBlobDetector_Params()
-
-params.filterByCircularity = True
-params.minCircularity = 0.6
-
-params.filterByArea = True
-params.minArea = 200
-
-params.filterByInertia = False
-params.filterByConvexity = False
-params.filterByColor = False
-
-detector = cv2.SimpleBlobDetector_create(params)
-
-polyline_color = (0, 255, 255)
-
-while(True):
-    ret, frame = cap.read()
+def getROI(frame, kernel, detector, debug=False):
+    green_min = 70
+    green_max = 90
 
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -44,22 +21,58 @@ while(True):
     for keypoint in keypoints:
         points.append([keypoint.pt[0], keypoint.pt[1]])
 
-    im_with_keypoints = cv2.drawKeypoints(green_mask, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    if debug:
+        im_with_keypoints = cv2.drawKeypoints(green_mask, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
 
     pts = np.array(points, np.int32)
     pts = pts.reshape((-1, 1, 2))
     hull = cv2.convexHull(pts, False)
-    # cv2.drawContours(frame, [hull], 0, (0, 255, 0), 10, 8)
+    
+    if debug:
+        cv2.drawContours(im_with_keypoints, [hull], 0, (0, 255, 0), 10, 8)
     
     board_mask = np.zeros(frame.shape, np.uint8)
     cv2.fillPoly(board_mask, [hull], (255, 255, 255))
 
-    green = frame & board_mask
+    roi = frame & board_mask
 
-    # rgb_masked = cv2.bitwise_and(rgb, rgb, mask=closing)
+    if debug:
+        return roi, im_with_keypoints
+    return roi, False
 
-    cv2.imshow('binarized', green)
+def getBlobDetector():
+    # Setup SimpleBlobDetector parameters.
+    params = cv2.SimpleBlobDetector_Params()
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
-cap.release()
+    params.filterByCircularity = True
+    params.minCircularity = 0.6
+
+    params.filterByArea = True
+    params.minArea = 200
+
+    params.filterByInertia = False
+    params.filterByConvexity = False
+    params.filterByColor = False
+
+    detector = cv2.SimpleBlobDetector_create(params)
+    
+    return detector
+
+def main(cap, debug=False):
+    detector = getBlobDetector()
+    kernel = np.ones((9, 9), np.uint8)
+
+    while(cap.isOpened()):
+        ret, frame = cap.read()
+
+        roi, debug_im = getROI(frame, kernel, detector)
+
+        cv2.imshow('ROI', roi)
+
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    cap.release()
+
+if __name__ == '__main__':
+    cap = cv2.VideoCapture("puntos.mp4")
+    main(cap)
