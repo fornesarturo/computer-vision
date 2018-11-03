@@ -25,15 +25,8 @@ def ball(frame, binarized, center, vel, global_Measurements, only_one_square, ra
 
     score = 0
 
-    
-
-    if(debug):
-        binarized = cv2.resize(binarized, (global_Width, global_Height))
-        cv2.circle(binarized, tuple(center), ball_diameter, ball_color, thickness)
-    else:
-        frame = cv2.resize(frame, (global_Width, global_Height))
-        cv2.circle(frame, tuple(center), ball_diameter, ball_color, thickness)
-    
+    binarized = cv2.resize(binarized, (global_Width, global_Height))
+    frame = cv2.resize(frame, (global_Width, global_Height))
 
     if (center[0] - 10) <= 0:
         velX = bounce_ball_TOP_BOTTOM(velX)
@@ -44,17 +37,22 @@ def ball(frame, binarized, center, vel, global_Measurements, only_one_square, ra
     elif (center[1] + 10) >= global_Height:
         velY = bounce_ball_LEFT_RIGHT(velY)    
 
-    if (center[1] < global_Height):
-        print("Binarized at ", (center[0]-10), " ", center[1], " is: ", binarized[center[1]][center[0]-10])
+    # if (center[1] < global_Height):
+    #     print("Binarized at ", (center[0]-10), " ", center[1], " is: ", binarized[center[1]][center[0]-10])
 
     if binarized[center[1]][center[0]-10] == 255:
+        print("Hello 1")
         velX = bounce_ball_TOP_BOTTOM(velX)
     if binarized[center[1]][center[0]+10] == 255:
+        print("Hello 2")
         velX = bounce_ball_TOP_BOTTOM(velX)
     if binarized[center[1]+10][center[0]] == 255:
+        print("Hello 3")
         velY = bounce_ball_LEFT_RIGHT(velY)
     if binarized[center[1]-10][center[0]] == 255:
+        print("Hello 4")
         velY = bounce_ball_LEFT_RIGHT(velY)
+    print("=============")
 
     if only_one_square:
         randX = random.randint(1,global_Width-50)
@@ -75,6 +73,12 @@ def ball(frame, binarized, center, vel, global_Measurements, only_one_square, ra
         score += 10
         print("New Score: ", score)
         only_one_square = True   
+
+    if debug:
+        cv2.circle(binarized, tuple(center), ball_diameter, ball_color, thickness)
+    else:
+        cv2.circle(frame, tuple(center), ball_diameter, ball_color, thickness)
+    
 
     center[0] += velX
     center[1] += velY
