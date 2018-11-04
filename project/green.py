@@ -62,12 +62,12 @@ def ball(frame, binarized, center, vel, global_Measurements, only_one_square, ra
         print("Binarized: ", binarized[center[1]][center[0]])
 
     if not out_of_bounds and (
-        binarized[center[1]][center[0]-10] == 255 or 
-        binarized[center[1]][center[0]+10] == 255):
+            binarized[center[1]][center[0]-10] == 255 or 
+            binarized[center[1]][center[0]+10] == 255):
         velX = bounce_ball_TOP_BOTTOM(velX)
     if not out_of_bounds and (
-        binarized[center[1]+10][center[0]] == 255 or 
-        binarized[center[1]-10][center[0]] == 255):
+            binarized[center[1]+10][center[0]] == 255 or 
+            binarized[center[1]-10][center[0]] == 255):
         velY = bounce_ball_LEFT_RIGHT(velY)
 
     if only_one_square:
