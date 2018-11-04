@@ -56,6 +56,11 @@ def ball(frame, binarized, center, vel, global_Measurements, only_one_square, ra
     elif (center[1] + 10) >= global_Height:
         velY = bounce_ball_LEFT_RIGHT(velY)
         out_of_bounds = True
+
+    #  AQUI EL PEDO QUE DICE ES: 
+    # ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
+    # Lo que tengo pensado es que el binarizado en esa posicion  que estamos checando, es: 206, 213, 224... por alguna razon no esta binarizaddo
+    # como 0 o 255
     
     print("Binarized: ", binarized[center[1]][center[0]])
 
