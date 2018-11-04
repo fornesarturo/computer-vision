@@ -22,11 +22,10 @@ def bounce_ball_LEFT_RIGHT(velocityX):
 def click(event, x, y, flags, param):
     global refPt, has_clicked
 
-    if not has_clicked:
-        if event == cv2.EVENT_LBUTTONDOWN:
-            refPt = [x, y]
-            print("Clicked: ", refPt[0], ", ", refPt[1])
-            has_clicked = True
+    if event == cv2.EVENT_LBUTTONDOWN:
+        refPt = [x, y]
+        print("Clicked: ", refPt[0], ", ", refPt[1])
+        has_clicked = True
 
 def ball(frame, binarized, center, vel, global_Measurements, only_one_square, rands, score, debug=False):
     global_Width = global_Measurements[0]
