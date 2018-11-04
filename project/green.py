@@ -249,7 +249,7 @@ def main(cap, debug=False):
         roi, debug_im = getROI(frame, kernel_blobs, detector)
         binarized = binarize(roi, kernel_binarization)
         frame = resize(frame, global_Measurements)
-        binarized = resize(frame, global_Measurements)
+        binarized = resize(binarized, global_Measurements)
         
         if not len(refPt)==0:
             frame, refPt, vel, only_one_square, rands, score = ball(frame, binarized, refPt, vel, global_Measurements, only_one_square, rands, score, False)
