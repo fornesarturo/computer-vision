@@ -32,7 +32,7 @@ def ball(frame, binarized, center, vel, global_Measurements, only_one_square, ra
     global_Width = global_Measurements[0]
     global_Height = global_Measurements[1]
 
-    print("Ball Center: ", center)
+    # print("Ball Center: ", center)
 
     ball_diameter = 20
     ball_radius = ball_diameter/2
@@ -44,16 +44,10 @@ def ball(frame, binarized, center, vel, global_Measurements, only_one_square, ra
 
     out_of_bounds = False
 
-    if (center[0] - 10) <= 0:
+    if (center[0] - 10) <= 0 or (center[0] + 10) >= global_Width:
         velX = bounce_ball_TOP_BOTTOM(velX)
         out_of_bounds = True
-    elif (center[0] + 10) >= global_Width:
-        velX = bounce_ball_TOP_BOTTOM(velX)
-        out_of_bounds = True
-    if (center[1] - 10) <= 0:
-        velY = bounce_ball_LEFT_RIGHT(velY)
-        out_of_bounds = True
-    elif (center[1] + 10) >= global_Height:
+    if (center[1] - 10) <= 0 or (center[1] + 10) >= global_Height:
         velY = bounce_ball_LEFT_RIGHT(velY)
         out_of_bounds = True
 
@@ -61,21 +55,24 @@ def ball(frame, binarized, center, vel, global_Measurements, only_one_square, ra
     # ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
     # Lo que tengo pensado es que el binarizado en esa posicion  que estamos checando, es: 206, 213, 224... por alguna razon no esta binarizaddo
     # como 0 o 255
-    
-    print("Binarized: ", binarized[center[1]][center[0]])
 
-    if not out_of_bounds and binarized[center[1]][center[0]-10] == 255:
+    print("Center:", center[1], center[0])
+    
+    if not out_of_bounds:
+        print("Binarized: ", binarized[center[1]][center[0]])
+
+    if not out_of_bounds and (
+        binarized[center[1]][center[0]-10] == 255 or 
+        binarized[center[1]][center[0]+10] == 255):
         velX = bounce_ball_TOP_BOTTOM(velX)
-    if not out_of_bounds and binarized[center[1]][center[0]+10] == 255:
-        velX = bounce_ball_TOP_BOTTOM(velX)
-    if not out_of_bounds and binarized[center[1]+10][center[0]] == 255:
-        velY = bounce_ball_LEFT_RIGHT(velY)
-    if not out_of_bounds and binarized[center[1]-10][center[0]] == 255:
+    if not out_of_bounds and (
+        binarized[center[1]+10][center[0]] == 255 or 
+        binarized[center[1]-10][center[0]] == 255):
         velY = bounce_ball_LEFT_RIGHT(velY)
 
     if only_one_square:
         randX = random.randint(1,global_Width-50)
-        randY = random.randint(1,global_Height-50)        
+        randY = random.randint(1,global_Height-50)
         only_one_square = False
     else:
         randX = rands[0]
