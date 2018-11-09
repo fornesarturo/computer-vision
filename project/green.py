@@ -2,6 +2,8 @@ import numpy as np
 import cv2
 import random
 import time
+import math
+
 
 has_clicked = False
 refPt = []
@@ -12,26 +14,25 @@ def bounce_ball_TOP_BOTTOM(velocityY):
 def bounce_ball_LEFT_RIGHT(velocityX):
     return -1 * velocityX
 
-# def click_canvas(event, x, y, flags, param):
-#     global ref_points, has_clicked
-#     if event == cv2.EVENT_LBUTTONDOWN:
-#         ref_points = [x,y]
-#         print("Clicked on: ", x, y)
-#         has_clicked = True
-
 def click(event, x, y, flags, param):
     global refPt, has_clicked
 
     if event == cv2.EVENT_LBUTTONDOWN:
         refPt = [x, y]
-        print("Clicked: ", refPt[0], ", ", refPt[1])
         has_clicked = True
 
-def ball(frame, binarized, center, vel, global_Measurements, only_one_square, rands, score, debug=False):
+def ball(frame, binarized, center, vel, global_Measurements, only_one_square, rands, score, max_min, ratios, debug=False):
     global_Width = global_Measurements[0]
     global_Height = global_Measurements[1]
 
-    # print("Ball Center: ", center)
+    # print("FRAME: ", frame.shape, " BINARIZED: ", binarized.shape)
+
+    for i in range(len(max_min)):
+        if i < 2:
+            max_min[i] = max_min[i] * ratios[0]
+        else:
+            max_min[i] = max_min[i] * ratios[1]            
+        max_min[i] = int(math.floor(max_min[i]))
 
     ball_diameter = 20
     ball_radius = ball_diameter/2
@@ -43,35 +44,56 @@ def ball(frame, binarized, center, vel, global_Measurements, only_one_square, ra
 
     out_of_bounds = False
 
-    if (center[0] - 10) <= 0 or (center[0] + 10) >= global_Width:
+    if (center[0] - 10) <= 5 or (center[0] + 10) >= global_Width-5:
         velX = bounce_ball_TOP_BOTTOM(velX)
         out_of_bounds = True
-    if (center[1] - 10) <= 0 or (center[1] + 10) >= global_Height:
+    if (center[1] - 10) <= 5 or (center[1] + 10) >= global_Height-5:
         velY = bounce_ball_LEFT_RIGHT(velY)
         out_of_bounds = True
 
-    #  AQUI EL PEDO QUE DICE ES: 
-    # ValueError: The truth value of an array with more than one element is ambiguous. Use a.any() or a.all()
-    # Lo que tengo pensado es que el binarizado en esa posicion  que estamos checando, es: 206, 213, 224... por alguna razon no esta binarizaddo
-    # como 0 o 255
+    bounce = False
 
-    print("Center:", center[1], center[0])
+    x_Circle = ball_radius * math.cos(45 * math.pi / 180)
+    y_Circle = ball_radius * math.sin(45 * math.pi / 180)
+
+    x_Circle = int(math.floor(x_Circle))
+    y_Circle = int(math.floor(y_Circle))
+
+    # if not out_of_bounds and (
+    #         binarized[center[1]][center[0]-10] == 255 or 
+    #         binarized[center[1]][center[0]+10] == 255 or
+    #         binarized[center[1] + y_Circle][center[0] + x_Circle] == 255 or
+    #         binarized[center[1] + y_Circle][center[0] - x_Circle] == 255):
+    #     velX = bounce_ball_TOP_BOTTOM(velX)
+    #     bounce = True
+    # if not out_of_bounds and (
+    #         binarized[center[1]+10][center[0]] == 255 or 
+    #         binarized[center[1]-10][center[0]] == 255 or
+    #         binarized[center[1] - y_Circle][center[0] + x_Circle] == 255 or
+    #         binarized[center[1] - y_Circle][center[0] - x_Circle] == 255):
+    #     velY = bounce_ball_LEFT_RIGHT(velY)
+    #     bounce = True
+
     
-    if not out_of_bounds:
-        print("Binarized: ", binarized[center[1]][center[0]])
-
-    if not out_of_bounds and (
+    if not bounce and not out_of_bounds and (
             binarized[center[1]][center[0]-10] == 255 or 
-            binarized[center[1]][center[0]+10] == 255):
+            binarized[center[1]][center[0]+10] == 255 or
+            binarized[center[1] + y_Circle][center[0] + x_Circle] == 255 or
+            binarized[center[1] + y_Circle][center[0] - x_Circle] == 255):
         velX = bounce_ball_TOP_BOTTOM(velX)
-    if not out_of_bounds and (
+        bounce = True
+    if not bounce and not out_of_bounds and (
             binarized[center[1]+10][center[0]] == 255 or 
-            binarized[center[1]-10][center[0]] == 255):
+            binarized[center[1]-10][center[0]] == 255 or
+            binarized[center[1] - y_Circle][center[0] + x_Circle] == 255 or
+            binarized[center[1] - y_Circle][center[0] - x_Circle] == 255):
         velY = bounce_ball_LEFT_RIGHT(velY)
+        bounce = True
+
 
     if only_one_square:
-        randX = random.randint(1,global_Width-50)
-        randY = random.randint(1,global_Height-50)
+        randX = random.randint(max_min[0]+30, max_min[1]-30)
+        randY = random.randint(max_min[2]+30, max_min[3]-30)
         only_one_square = False
     else:
         randX = rands[0]
@@ -79,6 +101,10 @@ def ball(frame, binarized, center, vel, global_Measurements, only_one_square, ra
 
     cv2.rectangle(frame, (randX, randY), (randX+35, randY+35), (0,255,0), -1)
 
+    if debug:
+        cv2.rectangle(binarized, (max_min[0], max_min[2]), (max_min[0]+10, max_min[2]+10), (0,0,255), -1)
+        cv2.rectangle(binarized, (max_min[1], max_min[3]), (max_min[1]-10, max_min[3]-10), (0,0,255), -1)
+    
     ball_x1 = center[0]-ball_radius
     ball_x2 = center[0]+ball_radius
     ball_y1 = center[1]+ball_radius
@@ -108,11 +134,12 @@ def ball(frame, binarized, center, vel, global_Measurements, only_one_square, ra
     return frame, center, vel, only_one_square, rands, score
 
 def resize(image, global_Measurements):
+    print("WIDTH: ", global_Measurements[0] , " HEIGHT: ", global_Measurements[1])
     return cv2.resize(image, (global_Measurements[0], global_Measurements[1]))
 
 def getROI(frame, kernel, detector, debug=False):
-    green_min = 70
-    green_max = 90
+    green_min = 50
+    green_max = 100
 
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -127,9 +154,26 @@ def getROI(frame, kernel, detector, debug=False):
     keypoints = detector.detect(green_mask)
     # print(keypoints)
 
+    min_x = float('Inf')
+    max_x = -float('Inf')
+
+    min_y = float('Inf')
+    max_y = -float('Inf')
+
     points = []
     for keypoint in keypoints:
+        # print(keypoint, keypoint.pt[0], keypoint.pt[1])
         points.append([keypoint.pt[0], keypoint.pt[1]])
+        if keypoint.pt[0] < min_x: 
+            min_x = keypoint.pt[0]
+        if keypoint.pt[0] > max_x:
+            max_x = keypoint.pt[0]
+        if keypoint.pt[1] < min_y: 
+            min_y = keypoint.pt[1]
+        if keypoint.pt[1] > max_y:
+            max_y = keypoint.pt[1]
+
+    min_max = [min_x, max_x, min_y, max_y]
     # print(points)
 
     if debug:
@@ -151,8 +195,8 @@ def getROI(frame, kernel, detector, debug=False):
     roi = frame & board_mask
 
     if debug:
-        return roi, im_with_keypoints
-    return roi, False
+        return roi, im_with_keypoints, min_max
+    return roi, False, min_max
 
 def binarize(frame, kernel):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -170,10 +214,10 @@ def getBlobDetector():
     # Setup SimpleBlobDetector parameters.
     params = cv2.SimpleBlobDetector_Params()
 
-    params.filterByCircularity = True
+    params.filterByCircularity = False
     params.minCircularity = 0.6
 
-    params.filterByArea = True
+    params.filterByArea = False
     params.minArea = 200
 
     params.filterByInertia = False
@@ -219,11 +263,13 @@ def mainImage(image, debug=False):
             break
 
 def main(cap, debug=False):
-    global_Width = 1280
-    global_Height = 720
+    global_Width = 980
+    global_Height = 600
+    # global_Width = 1280
+    # global_Height = 720
     global_Measurements = [global_Width, global_Height]
     only_one_square = True
-    vel = [30, 30]
+    vel = [25, 16]
     score = 0
     rands = [random.randint(1, global_Width-50), random.randint(1, global_Height-50)]
 
@@ -236,19 +282,33 @@ def main(cap, debug=False):
 
     cv2.namedWindow('ROI')
 
+    max_min = []
+
+    font = cv2.FONT_HERSHEY_SIMPLEX
+
     while(cap.isOpened()):
         ret, frame = cap.read()
 
         if not ret:
             break
 
-        roi, debug_im = getROI(frame, kernel_blobs, detector)
+        rate_y = global_Height / frame.shape[0]
+        rate_x = global_Width / frame.shape[1]
+
+        ratios = [rate_x, rate_y]
+
+
+        roi, debug_im, max_min = getROI(frame, kernel_blobs, detector, True)
+        debug_im = resize(debug_im, global_Measurements)
+        cv2.imshow('debug', debug_im)
         binarized = binarize(roi, kernel_binarization)
         frame = resize(frame, global_Measurements)
         binarized = resize(binarized, global_Measurements)
         
         if not len(refPt)==0:
-            frame, refPt, vel, only_one_square, rands, score = ball(frame, binarized, refPt, vel, global_Measurements, only_one_square, rands, score, False)
+            frame, refPt, vel, only_one_square, rands, score = ball(frame, binarized, refPt, vel, global_Measurements, only_one_square, rands, score, max_min, ratios , False)
+            # cv2.putText(img,'OpenCV',(10,500), font, 4,(255,255,255),2,cv2.LINE_AA)
+            cv2.putText(frame, 'Score: ' + str(score), (5, 35), font, 1, (255, 0, 0), 3, cv2.LINE_AA)
         cv2.setMouseCallback('ROI', click)
         cv2.imshow('ROI', frame)
 
@@ -257,7 +317,7 @@ def main(cap, debug=False):
     cap.release()
 
 if __name__ == '__main__':
-    cap = cv2.VideoCapture("puntos.mp4")
-    img = cv2.imread('puntos_img2.jpg')
+    cap = cv2.VideoCapture("puntos2.mp4")
+    # img = cv2.imread('puntos_img2.jpg')
     main(cap)
     # mainImage(img)
