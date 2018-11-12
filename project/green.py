@@ -284,7 +284,6 @@ def main(cap, debug=False):
         
         if not len(refPt)==0:
             frame, refPt, vel, only_one_square, rands, score = ball(frame, binarized, refPt, vel, global_Measurements, only_one_square, rands, score, max_min, ratios, True)
-            # cv2.putText(img,'OpenCV',(10,500), font, 4,(255,255,255),2,cv2.LINE_AA)
             cv2.putText(frame, 'Score: ' + str(score), (5, 35), font, 1, (255, 0, 0), 3, cv2.LINE_AA)
         cv2.setMouseCallback('ROI', click)
         cv2.imshow('ROI', frame)
@@ -295,6 +294,5 @@ def main(cap, debug=False):
 
 if __name__ == '__main__':
     # cap = cv2.VideoCapture("puntos2.mp4")
-    # img = cv2.imread('puntos_img2.jpg')
     cap = cv2.VideoCapture(0)
     main(cap)
