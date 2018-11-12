@@ -27,12 +27,19 @@ def ball(frame, binarized, center, vel, global_Measurements, only_one_square, ra
 
     # print("FRAME: ", frame.shape, " BINARIZED: ", binarized.shape)
 
-    for i in range(len(max_min)):
-        if i < 2:
-            max_min[i] = max_min[i] * ratios[0]
-        else:
-            max_min[i] = max_min[i] * ratios[1]            
-        max_min[i] = int(math.floor(max_min[i]))
+    if max_min[0] == float('Inf') or max_min[0] == float('-Inf') or max_min[1] == float('Inf') or max_min[2] == float('-Inf'):
+        print("Here validation")
+        max_min[0] = 0
+        max_min[1] = global_Width
+        max_min[2] = 0
+        max_min[3] = global_Height
+    else:
+        for i in range(len(max_min)):
+            if i < 2:
+                max_min[i] = max_min[i] * ratios[0]
+            else:
+                max_min[i] = max_min[i] * ratios[1]
+            max_min[i] = int(math.floor(max_min[i]))
 
     ball_diameter = 20
     ball_radius = ball_diameter/2
@@ -92,8 +99,12 @@ def ball(frame, binarized, center, vel, global_Measurements, only_one_square, ra
 
 
     if only_one_square:
-        randX = random.randint(max_min[0]+30, max_min[1]-30)
-        randY = random.randint(max_min[2]+30, max_min[3]-30)
+        try:
+            randX = random.randint(max_min[0]+30, max_min[1]-30)
+            randY = random.randint(max_min[2]+30, max_min[3]-30)
+        except:
+            randX = global_Width // 2
+            randY = global_Height // 2
         only_one_square = False
     else:
         randX = rands[0]
@@ -187,10 +198,12 @@ def getROI(frame, kernel, detector, debug=False):
     # print(hull)
     
     if debug:
-        cv2.drawContours(im_with_keypoints, [hull], 0, (0, 255, 0), 10, 8)
+        if hull is not None and len(hull) > 0:
+            cv2.drawContours(im_with_keypoints, [hull], 0, (0, 255, 0), 10, 8)
     
     board_mask = np.zeros(frame.shape, np.uint8)
-    cv2.fillPoly(board_mask, [hull], (255, 255, 255))
+    if hull is not None and len(hull) > 0:
+        cv2.fillPoly(board_mask, [hull], (255, 255, 255))
 
     roi = frame & board_mask
 
@@ -306,7 +319,7 @@ def main(cap, debug=False):
         binarized = resize(binarized, global_Measurements)
         
         if not len(refPt)==0:
-            frame, refPt, vel, only_one_square, rands, score = ball(frame, binarized, refPt, vel, global_Measurements, only_one_square, rands, score, max_min, ratios , False)
+            frame, refPt, vel, only_one_square, rands, score = ball(frame, binarized, refPt, vel, global_Measurements, only_one_square, rands, score, max_min, ratios, True)
             # cv2.putText(img,'OpenCV',(10,500), font, 4,(255,255,255),2,cv2.LINE_AA)
             cv2.putText(frame, 'Score: ' + str(score), (5, 35), font, 1, (255, 0, 0), 3, cv2.LINE_AA)
         cv2.setMouseCallback('ROI', click)
@@ -317,7 +330,8 @@ def main(cap, debug=False):
     cap.release()
 
 if __name__ == '__main__':
-    cap = cv2.VideoCapture("puntos2.mp4")
+    # cap = cv2.VideoCapture("puntos2.mp4")
     # img = cv2.imread('puntos_img2.jpg')
+    cap = cv2.VideoCapture(0)
     main(cap)
     # mainImage(img)
