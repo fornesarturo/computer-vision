@@ -153,8 +153,7 @@ def getROI(frame, kernel, detector, debug=False):
     green_max = 100
 
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    
+
     h, s, v = cv2.split(hsv)
 
     green_mask = cv2.inRange(h, green_min, green_max)
@@ -241,40 +240,6 @@ def getBlobDetector():
     
     return detector
 
-def mainImage(image, debug=False):
-    global_Width = 1280
-    global_Height = 720
-    global_Measurements = [global_Width, global_Height]
-    only_one_square = True
-    vel = [30, 30]
-    score = 0
-    rands = [random.randint(1, global_Width-50), random.randint(1, global_Height-50)]
-
-    center = [global_Width//2, global_Height//2]
-    detector = getBlobDetector()
-
-    kernel_blobs = np.ones((9, 9), np.uint8)
-    kernel_binarization = np.ones((5, 5), np.uint8)
-
-    cv2.imshow("img", image)
-    cv2.namedWindow('ROI')
-
-    frame = image
-
-    while(True):
-        roi, debug_im = getROI(frame, kernel_blobs, detector, True)
-        cv2.imshow('roi', debug_im)
-        binarized = binarize(roi, kernel_binarization)
-
-        game_show, center, vel, only_one_square, rands, score = ball(frame, binarized, center, vel, global_Measurements, only_one_square, rands, score, True)
-        # cv2.setMouseCallback('ROI', click_canvas)
-        cv2.imshow('ROI', game_show)
-        
-        time.sleep(0.025)
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
-
 def main(cap, debug=False):
     global_Width = 980
     global_Height = 600
@@ -334,4 +299,3 @@ if __name__ == '__main__':
     # img = cv2.imread('puntos_img2.jpg')
     cap = cv2.VideoCapture(0)
     main(cap)
-    # mainImage(img)
