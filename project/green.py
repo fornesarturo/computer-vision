@@ -215,7 +215,6 @@ def binarize(frame, kernel):
 
     ret_th, binarized = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 
-    masked = binarized * gray
     negation = cv2.bitwise_not(binarized)
     dilation = cv2.dilate(negation, kernel, iterations=2)
     closing = cv2.morphologyEx(dilation, cv2.MORPH_CLOSE, kernel)
