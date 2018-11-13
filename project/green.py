@@ -84,16 +84,16 @@ def ball(frame, binarized, center, vel, global_Measurements, only_one_square, ra
     
     if not bounce and not out_of_bounds and (
             binarized[center[1]][center[0]-10] == 255 or 
-            binarized[center[1]][center[0]+10] == 255 or
-            binarized[center[1] + y_Circle][center[0] + x_Circle] == 255 or
-            binarized[center[1] + y_Circle][center[0] - x_Circle] == 255):
+            binarized[center[1]][center[0]+10] == 255):
+            # binarized[center[1] + y_Circle][center[0] + x_Circle] == 255 or
+            # binarized[center[1] + y_Circle][center[0] - x_Circle] == 255):
         velX = bounce_ball_TOP_BOTTOM(velX)
         bounce = True
     if not bounce and not out_of_bounds and (
             binarized[center[1]+10][center[0]] == 255 or 
-            binarized[center[1]-10][center[0]] == 255 or
-            binarized[center[1] - y_Circle][center[0] + x_Circle] == 255 or
-            binarized[center[1] - y_Circle][center[0] - x_Circle] == 255):
+            binarized[center[1]-10][center[0]] == 255):
+            # binarized[center[1] - y_Circle][center[0] + x_Circle] == 255 or
+            # binarized[center[1] - y_Circle][center[0] - x_Circle] == 255):
         velY = bounce_ball_LEFT_RIGHT(velY)
         bounce = True
 
@@ -283,7 +283,7 @@ def main(cap, debug=False):
         binarized = resize(binarized, global_Measurements)
         
         if not len(refPt)==0:
-            frame, refPt, vel, only_one_square, rands, score = ball(frame, binarized, refPt, vel, global_Measurements, only_one_square, rands, score, max_min, ratios, True)
+            frame, refPt, vel, only_one_square, rands, score = ball(frame, binarized, refPt, vel, global_Measurements, only_one_square, rands, score, max_min, ratios, False)
             cv2.putText(frame, 'Score: ' + str(score), (5, 35), font, 1, (255, 0, 0), 3, cv2.LINE_AA)
         cv2.setMouseCallback('ROI', click)
         cv2.imshow('ROI', frame)
