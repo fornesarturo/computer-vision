@@ -28,7 +28,7 @@ def ball(frame, binarized, center, vel, global_Measurements, only_one_square, ra
     # print("FRAME: ", frame.shape, " BINARIZED: ", binarized.shape)
 
     if max_min[0] == float('Inf') or max_min[0] == float('-Inf') or max_min[1] == float('Inf') or max_min[2] == float('-Inf'):
-        print("Here validation")
+        # print("Here validation")
         max_min[0] = 0
         max_min[1] = global_Width
         max_min[2] = 0
@@ -90,8 +90,8 @@ def ball(frame, binarized, center, vel, global_Measurements, only_one_square, ra
         velX = bounce_ball_TOP_BOTTOM(velX)
         bounce = True
     if not bounce and not out_of_bounds and (
-            binarized[center[1]+10][center[0]] == 255 or 
-            binarized[center[1]-10][center[0]] == 255):
+            binarized[center[1]-10][center[0]] == 255 or 
+            binarized[center[1]+10][center[0]] == 255):
             # binarized[center[1] - y_Circle][center[0] + x_Circle] == 255 or
             # binarized[center[1] - y_Circle][center[0] - x_Circle] == 255):
         velY = bounce_ball_LEFT_RIGHT(velY)
@@ -145,7 +145,7 @@ def ball(frame, binarized, center, vel, global_Measurements, only_one_square, ra
     return frame, center, vel, only_one_square, rands, score
 
 def resize(image, global_Measurements):
-    print("WIDTH: ", global_Measurements[0] , " HEIGHT: ", global_Measurements[1])
+    # print("WIDTH: ", global_Measurements[0] , " HEIGHT: ", global_Measurements[1])
     return cv2.resize(image, (global_Measurements[0], global_Measurements[1]))
 
 def getROI(frame, kernel, detector, debug=False):
@@ -240,8 +240,8 @@ def getBlobDetector():
     return detector
 
 def main(cap, debug=False):
-    global_Width = 980
-    global_Height = 600
+    global_Width = 980 // 2
+    global_Height = 600 // 2
     # global_Width = 1280
     # global_Height = 720
     global_Measurements = [global_Width, global_Height]
